@@ -1,0 +1,68 @@
+CREATE TABLE IF NOT EXISTS users (
+  id CHAR(36) PRIMARY KEY,
+  email VARCHAR(254) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS profiles (
+  id CHAR(36) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL UNIQUE,
+  slug VARCHAR(30) NOT NULL UNIQUE,
+  name VARCHAR(120) NOT NULL DEFAULT '',
+  role VARCHAR(120) NOT NULL DEFAULT '',
+  avatar MEDIUMTEXT NULL,
+  bio TEXT NOT NULL,
+  email VARCHAR(254) NOT NULL DEFAULT '',
+  phone VARCHAR(40) NOT NULL DEFAULT '',
+  whatsapp VARCHAR(40) NOT NULL DEFAULT '',
+  website VARCHAR(2048) NOT NULL DEFAULT '',
+  skills TEXT NOT NULL,
+  services TEXT NOT NULL,
+  accent VARCHAR(20) NOT NULL DEFAULT 'blue',
+  projects JSON NOT NULL,
+  is_published BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_profiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS published_profiles (
+  profile_id CHAR(36) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL UNIQUE,
+  slug VARCHAR(30) NOT NULL UNIQUE,
+  profile_data JSON NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_published_profiles_profile FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+  CONSTRAINT fk_published_profiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS profile_slug_reservations (
+  slug VARCHAR(30) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  INDEX idx_profile_slug_reservations_user (user_id),
+  CONSTRAINT fk_profile_slug_reservations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id CHAR(36) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  revoked_at DATETIME NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_refresh_tokens_user (user_id),
+  CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS resumes (
+  id CHAR(36) PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  title VARCHAR(120) NOT NULL DEFAULT 'My resume',
+  template VARCHAR(30) NOT NULL DEFAULT 'classic',
+  color VARCHAR(7) NOT NULL DEFAULT '#426cf5',
+  resume_data JSON NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_resumes_user (user_id),
+  CONSTRAINT fk_resumes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
